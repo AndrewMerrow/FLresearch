@@ -17,7 +17,7 @@ args = parser.parse_args()
 for i in range(torch.cuda.device_count()):
    print(torch.cuda.get_device_properties(i).name)
 
-print(torch.backends.cudnn.is_available())
+print(torch.cuda.is_available())
 
 #device = torch.device(
 #        "cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu"
