@@ -37,6 +37,7 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.drop3(x)
         x = self.fc3(x)
+        print("x_shape: ", x.shape)
         return x
 
 
