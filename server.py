@@ -113,7 +113,7 @@ def main():
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
         evaluate_metrics_aggregation_fn=weighted_average,
-        initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
+        #initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
     )
 
     # Start Flower server for four rounds of federated learning
