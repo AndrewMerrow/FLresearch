@@ -26,6 +26,7 @@ class CifarClient(fl.client.NumPyClient):
     def set_parameters(self, parameters):
         """Loads a efficientnet model and replaces it parameters with the ones
         given."""
+        print("Params: " + str(parameters))
         model = utils.load_efficientnet(classes=10)
         params_dict = zip(model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
