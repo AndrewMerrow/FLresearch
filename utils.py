@@ -2,6 +2,7 @@ import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 import torch.nn as nn
+import torch.nn.functional as F
 
 import warnings
 
