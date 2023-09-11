@@ -37,7 +37,7 @@ class CifarClient(fl.client.NumPyClient):
     def fit(self, parameters, config):
         """Train parameters on the locally held training set."""
         print("Batch size: " + str(config['batch_size']))
-        print("Current round: " + str(config['current_round']))
+        #print("Current round: " + str(config['current_round']))
         print("Local epochs: " + str(config['local_epochs']))
         # Update local model parameters
         model = self.set_parameters(parameters)
@@ -82,7 +82,8 @@ def client_dry_run(device: str = "cpu"):
     """Weak tests to check whether all client methods are working as
     expected."""
 
-    model = utils.load_efficientnet(classes=10)
+    #model = utils.load_efficientnet(classes=10)
+    model = utils.Net()
     trainset, testset = utils.load_partition(0)
     trainset = torch.utils.data.Subset(trainset, range(10))
     testset = torch.utils.data.Subset(testset, range(10))

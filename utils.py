@@ -28,16 +28,23 @@ class Net(nn.Module):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
-        print('x_shape: ',x.shape)
+        #print('x_shape: ',x.shape)
         x = x.view(-1, 64 * 4 * 4)
-        print('x_shape: ',x.shape)
+        #print('x_shape: ',x.shape)
         x = self.drop1(x)
+        #print('before fc1: ',x.shape)
         x = F.relu(self.fc1(x))
+        #print('after fc1: ',x.shape)
         x = self.drop2(x)
+        #print('before fc2: ',x.shape)
         x = F.relu(self.fc2(x))
+        #print('after fc2: ',x.shape)
         x = self.drop3(x)
+        #print('before fc3: ',x.shape)
         x = self.fc3(x)
-        print("x_shape: ", x.shape)
+        #print('after fc3: ',x.shape)
+        x = x.view(9, -1)
+        #print("x_shape: ", x.shape)
         return x
 
 
@@ -110,6 +117,8 @@ def train(net, trainloader, valloader, epochs, device: str = "cpu"):
         for images, labels in trainloader:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
+            print("\nnet(images): " + str(net(images).shape))
+            print("labels: " + str(labels.shape) + "\n")
             loss = criterion(net(images), labels)
             loss.backward()
             optimizer.step()
@@ -117,7 +126,8 @@ def train(net, trainloader, valloader, epochs, device: str = "cpu"):
     net.to("cpu")  # move model back to CPU
 
     train_loss, train_acc = test(net, trainloader)
-    val_loss, val_acc = test(net, valloader)
+    #val_loss, val_acc = test(net, valloader)
+    val_loss, val_acc = test(net, trainloader)
 
     results = {
         "train_loss": train_loss,
@@ -135,9 +145,17 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     criterion = torch.nn.CrossEntropyLoss()
     correct, loss = 0, 0.0
     net.eval()
+    print("\ttest1")
     with torch.no_grad():
+        print("\ttest2")
         for batch_idx, (images, labels) in enumerate(testloader):
+            print("batch_idx: " + str(batch_idx))
+            print("image: " + str(images.shape))
+            print("labels: " + str(labels.shape))
             images, labels = images.to(device), labels.to(device)
+            print("\ttest3")
+            #print("images: " + str(images.shape))
+            #print("net: " + str(net(images).shape))
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
