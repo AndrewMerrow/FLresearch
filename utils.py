@@ -44,7 +44,7 @@ class Net(nn.Module):
         x = self.fc3(x)
         #print('after fc3: ',x.shape)
         #x = x.view(9, -1)
-        print("x_shape: ", x.shape)
+        #print("x_shape: ", x.shape)
         return x
 
 
