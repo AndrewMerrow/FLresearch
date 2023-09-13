@@ -127,8 +127,8 @@ def train(net, trainloader, valloader, epochs, device: str = "cpu"):
         for images, labels in trainloader:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
-            print("\nnet(images): " + str(net(images).shape))
-            print("labels: " + str(labels.shape) + "\n")
+            #print("\nnet(images): " + str(net(images).shape))
+            #print("labels: " + str(labels.shape) + "\n")
             loss = criterion(net(images), labels)
             loss.backward()
             optimizer.step()
@@ -159,9 +159,9 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     with torch.no_grad():
         #print("\ttest2")
         for batch_idx, (images, labels) in enumerate(testloader):
-            print("batch_idx: " + str(batch_idx))
-            print("image: " + str(images.shape))
-            print("labels: " + str(labels.shape) + "\n")
+            #print("batch_idx: " + str(batch_idx))
+            #rint("image: " + str(images.shape))
+            #print("labels: " + str(labels.shape) + "\n")
             images, labels = images.to(device), labels.to(device)
             #print("\ttest3")
             #print("images: " + str(images.shape))
