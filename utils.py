@@ -43,8 +43,8 @@ class Net(nn.Module):
         #print('before fc3: ',x.shape)
         x = self.fc3(x)
         #print('after fc3: ',x.shape)
-        x = x.view(9, -1)
-        #print("x_shape: ", x.shape)
+        #x = x.view(9, -1)
+        print("x_shape: ", x.shape)
         return x
 
 
@@ -72,17 +72,27 @@ class Net(nn.Module):
 
 def load_data():
     """Load CIFAR-10 (training and test set)."""
-    transform = transforms.Compose(
-        [
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
+  #  transform = transforms.Compose(
+  #      [
+  #          transforms.Resize(256),
+  #          transforms.CenterCrop(224),
+  #          transforms.ToTensor(),
+  #          transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+  #      ]
+  #  )
 
-    trainset = CIFAR10("./dataset", train=True, download=True, transform=transform)
-    testset = CIFAR10("./dataset", train=False, download=True, transform=transform)
+    transform_train = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010)),
+        ])
+    transform_test = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010)),
+        ])
+
+    trainset = CIFAR10("./dataset", train=True, download=True, transform=transform_train)
+    testset = CIFAR10("./dataset", train=False, download=True, transform=transform_test)
+    trainset.targets, testset.targets = torch.LongTensor(trainset.targets), torch.LongTensor(testset.targets)
 
     num_examples = {"trainset": len(trainset), "testset": len(testset)}
     return trainset, testset, num_examples
@@ -126,8 +136,8 @@ def train(net, trainloader, valloader, epochs, device: str = "cpu"):
     net.to("cpu")  # move model back to CPU
 
     train_loss, train_acc = test(net, trainloader)
-    #val_loss, val_acc = test(net, valloader)
-    val_loss, val_acc = test(net, trainloader)
+    val_loss, val_acc = test(net, valloader)
+    #val_loss, val_acc = test(net, trainloader)
 
     results = {
         "train_loss": train_loss,
@@ -145,15 +155,15 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     criterion = torch.nn.CrossEntropyLoss()
     correct, loss = 0, 0.0
     net.eval()
-    print("\ttest1")
+    #print("\ttest1")
     with torch.no_grad():
-        print("\ttest2")
+        #print("\ttest2")
         for batch_idx, (images, labels) in enumerate(testloader):
             print("batch_idx: " + str(batch_idx))
             print("image: " + str(images.shape))
-            print("labels: " + str(labels.shape))
+            print("labels: " + str(labels.shape) + "\n")
             images, labels = images.to(device), labels.to(device)
-            print("\ttest3")
+            #print("\ttest3")
             #print("images: " + str(images.shape))
             #print("net: " + str(net(images).shape))
             outputs = net(images)
