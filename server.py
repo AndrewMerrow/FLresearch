@@ -23,7 +23,7 @@ def fit_config(server_round: int):
     config = {
         "batch_size": 256,
         "current_round": server_round,
-        "local_epochs": 1, #if server_round < 2 else 2,
+        "local_epochs": 2, #if server_round < 2 else 2,
     }
     return config
 
@@ -106,9 +106,9 @@ def main():
 
     # Create strategy
     strategy = fl.server.strategy.FedAvg(
-        min_fit_clients=1,
-        min_evaluate_clients=1,
-        min_available_clients=1,
+        min_fit_clients=3,
+        min_evaluate_clients=3,
+        min_available_clients=3,
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
@@ -119,7 +119,7 @@ def main():
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="10.100.116.10:8080",
-        config=fl.server.ServerConfig(num_rounds=2),
+        config=fl.server.ServerConfig(num_rounds=5),
         strategy=strategy,
     )
 
