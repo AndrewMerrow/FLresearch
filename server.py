@@ -1,8 +1,9 @@
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Union
 from collections import OrderedDict
 import argparse
 from torch.utils.data import DataLoader
-from flwr.common import Metrics
+from flwr.common import Metrics, Scalar, EvaluateRes, FitRes
+from flwr.server.client_proxy import ClientProxy
 
 import flwr as fl
 import torch
@@ -71,14 +72,71 @@ def get_evaluate_fn(model: torch.nn.Module, toy: bool):
 
     return evaluate
 
-def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
+#def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     # Multiply accuracy of each client by number of examples used
-    accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
-    examples = [num_examples for num_examples, _ in metrics]
+#    accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
+#    examples = [num_examples for num_examples, _ in metrics]
 
     # Aggregate and return custom metric (weighted average)
-    print("Evaluated accuracy: " + str(sum(accuracies) / sum(examples)))
-    return {"accuracy": sum(accuracies) / sum(examples)}
+#    print("Evaluated accuracy: " + str(sum(accuracies) / sum(examples)))
+#    return {"accuracy": sum(accuracies) / sum(examples)}
+
+class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
+    def aggregate_fit(
+        self,
+        server_round: int,
+        results: List[Tuple[ClientProxy, FitRes]],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+    ) -> Tuple[Optional[float], Dict[str, Scalar]]:
+        if not results:
+            return None, {}
+        
+        for client in results:
+            print("Client: " + str(client[1].metrics))
+
+        # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
+        aggregated_loss, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+
+        # Weigh accuracy of each client by number of examples used
+        accuracies = [r.metrics["train_accuracy"] * r.num_examples for _, r in results]
+        examples = [r.num_examples for _, r in results]
+
+        # Aggregate and print custom metric
+        aggregated_accuracy = sum(accuracies) / sum(examples)
+        print(f"Round {server_round} accuracy aggregated from client results: {aggregated_accuracy}")
+
+        # Return aggregated loss and metrics (i.e., aggregated accuracy)
+        print("DUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUHHHHHHHHHHHHHH")
+        return aggregated_loss, {"accuracy": aggregated_accuracy}
+    
+    def aggregate_evaluate(
+        self,
+        server_round: int,
+        results: List[Tuple[ClientProxy, EvaluateRes]],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+    ) -> Tuple[Optional[float], Dict[str, Scalar]]:
+        """Aggregate evaluation accuracy using weighted average."""
+
+        if not results:
+            return None, {}
+        
+        for client in results:
+            print("Client results: " + str(client[1].metrics))
+
+        # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
+        aggregated_loss, aggregated_metrics = super().aggregate_evaluate(server_round, results, failures)
+
+        # Weigh accuracy of each client by number of examples used
+        accuracies = [r.metrics["accuracy"] * r.num_examples for _, r in results]
+        examples = [r.num_examples for _, r in results]
+
+        # Aggregate and print custom metric
+        aggregated_accuracy = sum(accuracies) / sum(examples)
+        print(f"Round {server_round} accuracy aggregated from client results: {aggregated_accuracy}")
+
+        # Return aggregated loss and metrics (i.e., aggregated accuracy)
+        print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+        return aggregated_loss, {"accuracy": aggregated_accuracy}
 
 def main():
     """Load model for
@@ -105,21 +163,22 @@ def main():
     model_parameters = [val.cpu().numpy() for _, val in model.state_dict().items()]
 
     # Create strategy
-    strategy = fl.server.strategy.FedAvg(
+    #strategy = fl.server.strategy.FedAvg(
+    strategy = AggregateCustomMetricStrategy(
         min_fit_clients=3,
         min_evaluate_clients=3,
         min_available_clients=3,
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
-        evaluate_metrics_aggregation_fn=weighted_average,
+    #    evaluate_metrics_aggregation_fn=weighted_average,
         #initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
     )
 
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="10.100.116.10:8080",
-        config=fl.server.ServerConfig(num_rounds=5),
+        config=fl.server.ServerConfig(num_rounds=10),
         strategy=strategy,
     )
 
