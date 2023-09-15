@@ -28,23 +28,13 @@ class Net(nn.Module):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
-        #print('x_shape: ',x.shape)
         x = x.view(-1, 64 * 4 * 4)
-        #print('x_shape: ',x.shape)
         x = self.drop1(x)
-        #print('before fc1: ',x.shape)
         x = F.relu(self.fc1(x))
-        #print('after fc1: ',x.shape)
         x = self.drop2(x)
-        #print('before fc2: ',x.shape)
         x = F.relu(self.fc2(x))
-        #print('after fc2: ',x.shape)
         x = self.drop3(x)
-        #print('before fc3: ',x.shape)
         x = self.fc3(x)
-        #print('after fc3: ',x.shape)
-        #x = x.view(9, -1)
-        #print("x_shape: ", x.shape)
         return x
 
 
