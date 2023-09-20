@@ -54,7 +54,7 @@ class CifarClient(fl.client.NumPyClient):
             self.trainset, range(n_valset, len(self.trainset))
         )
 
-        idxs = (valset.targets == 5).nonzero().flatten().tolist()
+        idxs = (self.testset.targets == 5).nonzero().flatten().tolist()
         trainLoader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
         valLoader = DataLoader(valset, batch_size=batch_size)
         poisoned_val_set = utils.DatasetSplit(copy.deepcopy(valset), idxs)
