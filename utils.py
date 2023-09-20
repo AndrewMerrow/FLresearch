@@ -3,6 +3,10 @@ import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 import torch.nn as nn
 import torch.nn.functional as F
+import cv2
+import random
+import numpy as np
+from math import floor
 
 import warnings
 
@@ -38,39 +42,8 @@ class Net(nn.Module):
         return x
 
 
-
-#class Net(nn.Module):
-#  """Model (simple CNN adapted from 'PyTorch: A 60 Minute Blitz')"""#
-
-#  def __init__(self) -> None:
-#    super(Net, self).__init__()
-#    self.conv1 = nn.Conv2d(3, 6, 5)
-#    self.pool = nn.MaxPool2d(2, 2)
-#    self.conv2 = nn.Conv2d(6, 16, 5)
-#    self.fc1 = nn.Linear(16 * 5 * 5, 120)
-#    self.fc2 = nn.Linear(120, 84)
-#    self.fc3 = nn.Linear(84, 10)
-
-#  def forward(self, x: torch.Tensor) -> torch.Tensor:
-#    x = self.pool(F.relu(self.conv1(x)))
-#    x = self.pool(F.relu(self.conv2(x)))
-#    x = x.view(-1, 16 * 5 * 5)
-#    x = F.relu(self.fc1(x))
-#    x = F.relu(self.fc2(x))
-#    return self.fc3(x)
-
-
 def load_data():
     """Load CIFAR-10 (training and test set)."""
-  #  transform = transforms.Compose(
-  #      [
-  #          transforms.Resize(256),
-  #          transforms.CenterCrop(224),
-  #          transforms.ToTensor(),
-  #          transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-  #      ]
-  #  )
-
     transform_train = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010)),
@@ -102,6 +75,132 @@ def load_partition(idx: int):
         testset, range(idx * n_test, (idx + 1) * n_test)
     )
     return (train_parition, test_parition)
+
+
+def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
+    all_idxs = (dataset.targets == 5).nonzero().flatten().tolist()
+    if data_idxs != None:
+        all_idxs = list(set(all_idxs).intersection(data_idxs))
+
+    poison_frac = 1 if poison_all else 0.5
+    poison_idxs = random.sample(all_idxs, floor(poison_frac*len(all_idxs)))
+    for idx in poison_idxs:
+        #if args.data == 'fedemnist':
+        #    clean_img = dataset.inputs[idx]
+        #else:
+        clean_img = dataset.data[idx]
+        bd_img = add_pattern_bd(clean_img, 'cifar10', pattern_type='plus', agent_idx=agent_idx)
+        #if args.data == 'fedemnist':
+        #     dataset.inputs[idx] = torch.tensor(bd_img)
+        #else:
+        dataset.data[idx] = torch.tensor(bd_img)
+        
+        dataset.targets[idx] = 7
+    return
+
+
+def add_pattern_bd(x, dataset='cifar10', pattern_type='square', agent_idx=-1):
+    """
+    adds a trojan pattern to the image
+    """
+    x = np.array(x.squeeze())
+
+    # if cifar is selected, we're doing a distributed backdoor attack (i.e., portions of trojan pattern is split between agents, only works for plus)
+    if dataset == 'cifar10':
+        if pattern_type == 'plus':
+            start_idx = 5
+            size = 6
+            if agent_idx == -1:
+                # vertical line
+                for d in range(0, 3):
+                    for i in range(start_idx, start_idx+size+1):
+                        x[i, start_idx][d] = 0
+                # horizontal line
+                for d in range(0, 3):
+                    for i in range(start_idx-size//2, start_idx+size//2 + 1):
+                        x[start_idx+size//2, i][d] = 0
+            else:# DBA attack
+                #upper part of vertical
+                if agent_idx % 4 == 0:
+                    for d in range(0, 3):
+                        for i in range(start_idx, start_idx+(size//2)+1):
+                            x[i, start_idx][d] = 0
+
+                #lower part of vertical
+                elif agent_idx % 4 == 1:
+                    for d in range(0, 3):
+                        for i in range(start_idx+(size//2)+1, start_idx+size+1):
+                            x[i, start_idx][d] = 0
+
+                #left-part of horizontal
+                elif agent_idx % 4 == 2:
+                    for d in range(0, 3):
+                        for i in range(start_idx-size//2, start_idx+size//4 + 1):
+                            x[start_idx+size//2, i][d] = 0
+
+                #right-part of horizontal
+                elif agent_idx % 4 == 3:
+                    for d in range(0, 3):
+                        for i in range(start_idx-size//4+1, start_idx+size//2 + 1):
+                            x[start_idx+size//2, i][d] = 0
+
+    elif dataset == 'fmnist':
+        if pattern_type == 'square':
+            for i in range(21, 26):
+                for j in range(21, 26):
+                    x[i, j] = 255
+
+        elif pattern_type == 'copyright':
+            trojan = cv2.imread('../watermark.png', cv2.IMREAD_GRAYSCALE)
+            trojan = cv2.bitwise_not(trojan)
+            trojan = cv2.resize(trojan, dsize=(28, 28), interpolation=cv2.INTER_CUBIC)
+            x = x + trojan
+
+        elif pattern_type == 'apple':
+            trojan = cv2.imread('../apple.png', cv2.IMREAD_GRAYSCALE)
+            trojan = cv2.bitwise_not(trojan)
+            trojan = cv2.resize(trojan, dsize=(28, 28), interpolation=cv2.INTER_CUBIC)
+            x = x + trojan
+
+        elif pattern_type == 'plus':
+            start_idx = 5
+            size = 5
+            # vertical line
+            for i in range(start_idx, start_idx+size):
+                x[i, start_idx] = 255
+
+            # horizontal line
+            for i in range(start_idx-size//2, start_idx+size//2 + 1):
+                x[start_idx+size//2, i] = 255
+
+    elif dataset == 'fedemnist':
+        if pattern_type == 'square':
+            for i in range(21, 26):
+                for j in range(21, 26):
+                    x[i, j] = 0
+
+        elif pattern_type == 'copyright':
+            trojan = cv2.imread('../watermark.png', cv2.IMREAD_GRAYSCALE)
+
+        elif pattern_type == 'apple':
+            trojan = cv2.imread('../apple.png', cv2.IMREAD_GRAYSCALE)
+            trojan = cv2.bitwise_not(trojan)
+            trojan = cv2.resize(trojan, dsize=(28, 28), interpolation=cv2.INTER_CUBIC)/255
+            x = x - trojan
+
+        elif pattern_type == 'plus':
+            start_idx = 8
+            size = 5
+            # vertical line
+            for i in range(start_idx, start_idx+size):
+                x[i, start_idx] = 0
+
+            # horizontal line
+            for i in range(start_idx-size//2, start_idx+size//2 + 1):
+                x[start_idx+size//2, i] = 0
+
+    return x   
+
 
 
 def train(net, trainloader, valloader, epochs, device: str = "cpu"):
@@ -149,13 +248,7 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     with torch.no_grad():
         #print("\ttest2")
         for batch_idx, (images, labels) in enumerate(testloader):
-            #print("batch_idx: " + str(batch_idx))
-            #rint("image: " + str(images.shape))
-            #print("labels: " + str(labels.shape) + "\n")
             images, labels = images.to(device), labels.to(device)
-            #print("\ttest3")
-            #print("images: " + str(images.shape))
-            #print("net: " + str(net(images).shape))
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
@@ -172,29 +265,6 @@ def replace_classifying_layer(efficientnet_model, num_classes: int = 10):
     num_features = efficientnet_model.classifier.fc.in_features
     efficientnet_model.classifier.fc = torch.nn.Linear(num_features, num_classes)
 
-
-def load_efficientnet(entrypoint: str = "nvidia_efficientnet_b0", classes: int = None):
-    """Loads pretrained efficientnet model from torch hub. Replaces final
-    classifying layer if classes is specified.
-
-    Args:
-        entrypoint: EfficientNet model to download.
-                    For supported entrypoints, please refer
-                    https://pytorch.org/hub/nvidia_deeplearningexamples_efficientnet/
-        classes: Number of classes in final classifying layer. Leave as None to get the downloaded
-                 model untouched.
-    Returns:
-        EfficientNet Model
-
-    Note: One alternative implementation can be found at https://github.com/lukemelas/EfficientNet-PyTorch
-    """
-    efficientnet = torch.hub.load(
-        "NVIDIA/DeepLearningExamples:torchhub", entrypoint, pretrained=True
-    )
-
-    if classes is not None:
-        replace_classifying_layer(efficientnet, classes)
-    return efficientnet
 
 
 def get_model_params(model):
