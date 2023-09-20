@@ -65,16 +65,17 @@ def load_partition(idx: int):
     """Load 1/10th of the training and test data to simulate a partition."""
     assert idx in range(10)
     trainset, testset, num_examples = load_data()
-    n_train = int(num_examples["trainset"] / 10)
-    n_test = int(num_examples["testset"] / 10)
+    return (trainset, testset)
+    #n_train = int(num_examples["trainset"] / 10)
+    #n_test = int(num_examples["testset"] / 10)
 
-    train_parition = torch.utils.data.Subset(
-        trainset, range(idx * n_train, (idx + 1) * n_train)
-    )
-    test_parition = torch.utils.data.Subset(
-        testset, range(idx * n_test, (idx + 1) * n_test)
-    )
-    return (train_parition, test_parition)
+    #train_parition = torch.utils.data.Subset(
+    #    trainset, range(idx * n_train, (idx + 1) * n_train)
+    #)
+    #test_parition = torch.utils.data.Subset(
+    #    testset, range(idx * n_test, (idx + 1) * n_test)
+    #)
+    #return (train_parition, test_parition)
 
 
 def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
