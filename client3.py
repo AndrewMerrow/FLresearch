@@ -6,6 +6,7 @@ import flwr as fl
 import argparse
 from collections import OrderedDict
 import warnings
+import copy
 
 warnings.filterwarnings("ignore")
 
@@ -24,7 +25,7 @@ class CifarClient(fl.client.NumPyClient):
         self.validation_split = validation_split
 
     def set_parameters(self, parameters):
-        """Loads a efficientnet model and replaces it parameters with the ones
+        """Loads a CNN model and replaces it parameters with the ones
         given."""
         #print("Params: " + str(parameters))
         #model = utils.load_efficientnet(classes=10)
@@ -53,8 +54,11 @@ class CifarClient(fl.client.NumPyClient):
             self.trainset, range(n_valset, len(self.trainset))
         )
 
+        idxs = (self.testset.targets == 5).nonzero().flatten().tolist()
         trainLoader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
         valLoader = DataLoader(valset, batch_size=batch_size)
+        poisoned_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
+        utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
 
         results = utils.train(model, trainLoader, valLoader, epochs, self.device)
 
@@ -90,7 +94,7 @@ def client_dry_run(device: str = "cpu"):
     client = CifarClient(trainset, testset, device)
     client.fit(
         utils.get_model_params(model),
-        {"batch_size": 16, "local_epochs": 1},
+        {"batch_size": 16, "local_epochs": 1, "current_round": 1},
     )
 
     client.evaluate(utils.get_model_params(model), {"val_steps": 32})
