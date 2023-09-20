@@ -1,6 +1,7 @@
 import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
+from torch.utils.data import Dataset
 import torch.nn as nn
 import torch.nn.functional as F
 import cv2
@@ -76,6 +77,23 @@ def load_partition(idx: int):
     #    testset, range(idx * n_test, (idx + 1) * n_test)
     #)
     #return (train_parition, test_parition)
+
+class DatasetSplit(Dataset):
+    """ An abstract Dataset class wrapped around Pytorch Dataset class """
+    def __init__(self, dataset, idxs):
+        self.dataset = dataset
+        self.idxs = idxs
+        self.targets = torch.Tensor([self.dataset.targets[idx] for idx in idxs])
+
+    def classes(self):
+        return torch.unique(self.targets)
+
+    def __len__(self):
+        return len(self.idxs)
+
+    def __getitem__(self, item):
+        inp, target = self.dataset[self.idxs[item]]
+        return inp, target
 
 
 def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
