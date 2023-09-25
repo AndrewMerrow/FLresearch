@@ -253,9 +253,9 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
 
     net.to("cpu")  # move model back to CPU
 
-    train_loss, train_acc = test(net, trainloader)
-    val_loss, val_acc = test(net, valloader)
-    poison_loss, poison_acc = test(net, poinsonedloader)
+    train_loss, train_acc = test(net, trainloader, None, device)
+    val_loss, val_acc = test(net, valloader, None, device)
+    poison_loss, poison_acc = test(net, poinsonedloader, None, device)
     #val_loss, val_acc = test(net, trainloader)
 
     results = {
