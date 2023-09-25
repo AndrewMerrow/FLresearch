@@ -272,21 +272,25 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     print("Starting evalutation...")
     net.to(device)  # move model to GPU if available
     criterion = torch.nn.CrossEntropyLoss()
+    loss, accuracy = get_loss_and_accuracy(net, criterion, testloader, steps, device)
+    net.to("cpu")  # move model back to CPU
+    return loss, accuracy
+
+def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, device: str = "cpu"):
     correct, loss = 0, 0.0
-    net.eval()
+    model.eval()
     #print("\ttest1")
     with torch.no_grad():
         #print("\ttest2")
-        for batch_idx, (images, labels) in enumerate(testloader):
+        for batch_idx, (images, labels) in enumerate(data_loader):
             images, labels = images.to(device), labels.to(device)
-            outputs = net(images)
+            outputs = model(images)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
             correct += (predicted == labels).sum().item()
             if steps is not None and batch_idx == steps:
                 break
-    accuracy = correct / len(testloader.dataset)
-    net.to("cpu")  # move model back to CPU
+    accuracy = correct / len(data_loader.dataset)
     return loss, accuracy
 
 
