@@ -58,20 +58,25 @@ class CifarClient(fl.client.NumPyClient):
         idxs = (self.testset.targets == 5).nonzero().flatten().tolist()
         trainLoader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
         valLoader = DataLoader(valset, batch_size=batch_size)
+        
+        #create a copy to be poisoned and another copy as a control 
         poisoned_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
-        utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
+        clean_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
 
-        #visulaization
-        figure = plt.figure(figsize=(8, 8))
-        cols, rows = 3, 3
-        for i in range(1, cols * rows + 1):
-            sample_idx = torch.randint(len(trainset), size=(1,)).item()
-            img, label = trainset[sample_idx]
-            figure.add_subplot(rows, cols, i)
-            plt.title("test")
-            plt.axis("off")
-            plt.imshow(img.squeeze())
-        plt.show()
+        utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
+        print(poisoned_val_set.dataset.data.shape)
+        
+        #test images for visualization to confirm poisoning was successful 
+        test_poison = poisoned_val_set.dataset.data[3000]
+        test_clean = clean_val_set.dataset.data[3000]
+
+        #visualize the poisoned image
+        #fig = plt.figure()
+        #ax1 = fig.add_subplot(2,2,1)
+        #ax1.imshow(test_clean)
+        #ax2 = fig.add_subplot(2,2,2)
+        #ax2.imshow(test_poison)
+        #plt.show()
 
         #training
         results = utils.train(model, trainLoader, valLoader, epochs, self.device)

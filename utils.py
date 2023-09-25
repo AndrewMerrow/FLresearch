@@ -8,6 +8,7 @@ import cv2
 import random
 import numpy as np
 from math import floor
+import matplotlib.pyplot as plt
 
 import warnings
 
@@ -97,17 +98,25 @@ class DatasetSplit(Dataset):
 
 
 def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
+    print("During poison: " + str(id(dataset)))
     all_idxs = (dataset.targets == 5).nonzero().flatten().tolist()
     if data_idxs != None:
         all_idxs = list(set(all_idxs).intersection(data_idxs))
 
     poison_frac = 1 if poison_all else 0.5
+    print("Poinson fraction: " + str(poison_frac))
     poison_idxs = random.sample(all_idxs, floor(poison_frac*len(all_idxs)))
+    print("Poisoning {} images".format(len(poison_idxs)))
     for idx in poison_idxs:
         #if args.data == 'fedemnist':
         #    clean_img = dataset.inputs[idx]
         #else:
         clean_img = dataset.data[idx]
+        #print("pre: " + str(clean_img.shape))
+        #test_image = clean_img.transpose(2,1,0)
+        #print("post: " + str(test_image.shape))
+        #plt.imshow(clean_img)
+        #plt.title("test")
         #print(clean_img)
         bd_img = add_pattern_bd(clean_img, 'cifar10', pattern_type='plus', agent_idx=agent_idx)
         #if args.data == 'fedemnist':
@@ -134,6 +143,7 @@ def add_pattern_bd(x, dataset='cifar10', pattern_type='square', agent_idx=-1):
                 # vertical line
                 for d in range(0, 3):
                     for i in range(start_idx, start_idx+size+1):
+                        #print("changing {} to 0".format(str(x[i, start_idx][d])))
                         x[i, start_idx][d] = 0
                 # horizontal line
                 for d in range(0, 3):
