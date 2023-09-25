@@ -103,7 +103,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
 
         # Aggregate and print custom metric
         aggregated_accuracy = sum(accuracies) / sum(examples)
-        print(f"Round {server_round} accuracy aggregated from client results: {aggregated_accuracy}")
+        print(f"Round {server_round} accuracy aggregated from client fit results: {aggregated_accuracy}")
 
         # Return aggregated loss and metrics (i.e., aggregated accuracy)
         #print("DUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUHHHHHHHHHHHHHH")
@@ -132,7 +132,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
 
         # Aggregate and print custom metric
         aggregated_accuracy = sum(accuracies) / sum(examples)
-        print(f"Round {server_round} accuracy aggregated from client results: {aggregated_accuracy}")
+        print(f"Round {server_round} accuracy aggregated from client eval results: {aggregated_accuracy}")
 
         # Return aggregated loss and metrics (i.e., aggregated accuracy)
         #print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
@@ -165,9 +165,9 @@ def main():
     # Create strategy
     #strategy = fl.server.strategy.FedAvg(
     strategy = AggregateCustomMetricStrategy(
-        min_fit_clients=1,
-        min_evaluate_clients=1,
-        min_available_clients=1,
+        min_fit_clients=3,
+        min_evaluate_clients=3,
+        min_available_clients=3,
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
