@@ -7,6 +7,7 @@ import argparse
 from collections import OrderedDict
 import warnings
 import copy
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
 
@@ -60,6 +61,19 @@ class CifarClient(fl.client.NumPyClient):
         poisoned_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
         utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
 
+        #visulaization
+        figure = plt.figure(figsize=(8, 8))
+        cols, rows = 3, 3
+        for i in range(1, cols * rows + 1):
+            sample_idx = torch.randint(len(trainset), size=(1,)).item()
+            img, label = trainset[sample_idx]
+            figure.add_subplot(rows, cols, i)
+            plt.title("test")
+            plt.axis("off")
+            plt.imshow(img.squeeze())
+        plt.show()
+
+        #training
         results = utils.train(model, trainLoader, valLoader, epochs, self.device)
 
         parameters_prime = utils.get_model_params(model)
@@ -89,8 +103,8 @@ def client_dry_run(device: str = "cpu"):
     #model = utils.load_efficientnet(classes=10)
     model = utils.Net()
     trainset, testset = utils.load_partition(0)
-    trainset = torch.utils.data.Subset(trainset, range(10))
-    testset = torch.utils.data.Subset(testset, range(10))
+    #trainset = torch.utils.data.Subset(trainset, range(10))
+    #testset = torch.utils.data.Subset(testset, range(10))
     client = CifarClient(trainset, testset, device)
     client.fit(
         utils.get_model_params(model),

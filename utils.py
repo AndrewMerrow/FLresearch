@@ -108,7 +108,7 @@ def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
         #    clean_img = dataset.inputs[idx]
         #else:
         clean_img = dataset.data[idx]
-        print(clean_img)
+        #print(clean_img)
         bd_img = add_pattern_bd(clean_img, 'cifar10', pattern_type='plus', agent_idx=agent_idx)
         #if args.data == 'fedemnist':
         #     dataset.inputs[idx] = torch.tensor(bd_img)
