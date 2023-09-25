@@ -7,6 +7,7 @@ import argparse
 from collections import OrderedDict
 import warnings
 import copy
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
 
@@ -57,10 +58,30 @@ class CifarClient(fl.client.NumPyClient):
         idxs = (self.testset.targets == 5).nonzero().flatten().tolist()
         trainLoader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
         valLoader = DataLoader(valset, batch_size=batch_size)
+        
+        #create a copy to be poisoned and another copy as a control 
         poisoned_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
-        utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
+        clean_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
 
-        results = utils.train(model, trainLoader, valLoader, epochs, self.device)
+        utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
+        #print(poisoned_val_set.dataset.data.shape)
+
+        poisoned_val_loader = DataLoader(poisoned_val_set, batch_size=256, shuffle=False, pin_memory=False)
+        
+        #test images for visualization to confirm poisoning was successful 
+        test_poison = poisoned_val_set.dataset.data[3000]
+        test_clean = clean_val_set.dataset.data[3000]
+
+        #visualize the poisoned image
+        #fig = plt.figure()
+        #ax1 = fig.add_subplot(2,2,1)
+        #ax1.imshow(test_clean)
+        #ax2 = fig.add_subplot(2,2,2)
+        #ax2.imshow(test_poison)
+        #plt.show()
+
+        #training
+        results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
 
         parameters_prime = utils.get_model_params(model)
         num_examples_train = len(trainset)
@@ -89,8 +110,8 @@ def client_dry_run(device: str = "cpu"):
     #model = utils.load_efficientnet(classes=10)
     model = utils.Net()
     trainset, testset = utils.load_partition(0)
-    trainset = torch.utils.data.Subset(trainset, range(10))
-    testset = torch.utils.data.Subset(testset, range(10))
+    #trainset = torch.utils.data.Subset(trainset, range(10))
+    #testset = torch.utils.data.Subset(testset, range(10))
     client = CifarClient(trainset, testset, device)
     client.fit(
         utils.get_model_params(model),
