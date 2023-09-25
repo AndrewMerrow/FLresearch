@@ -65,6 +65,8 @@ class CifarClient(fl.client.NumPyClient):
 
         utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
         print(poisoned_val_set.dataset.data.shape)
+
+        poisoned_val_loader = DataLoader(poisoned_val_set, batch_size=256, shuffle=False, pin_memory=False)
         
         #test images for visualization to confirm poisoning was successful 
         test_poison = poisoned_val_set.dataset.data[3000]
@@ -79,7 +81,7 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
-        results = utils.train(model, trainLoader, valLoader, epochs, self.device)
+        results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
 
         parameters_prime = utils.get_model_params(model)
         num_examples_train = len(trainset)

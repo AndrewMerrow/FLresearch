@@ -98,15 +98,14 @@ class DatasetSplit(Dataset):
 
 
 def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
-    print("During poison: " + str(id(dataset)))
     all_idxs = (dataset.targets == 5).nonzero().flatten().tolist()
     if data_idxs != None:
         all_idxs = list(set(all_idxs).intersection(data_idxs))
 
     poison_frac = 1 if poison_all else 0.5
-    print("Poinson fraction: " + str(poison_frac))
+    #print("Poinson fraction: " + str(poison_frac))
     poison_idxs = random.sample(all_idxs, floor(poison_frac*len(all_idxs)))
-    print("Poisoning {} images".format(len(poison_idxs)))
+    #print("Poisoning {} images".format(len(poison_idxs)))
     for idx in poison_idxs:
         #if args.data == 'fedemnist':
         #    clean_img = dataset.inputs[idx]
@@ -233,7 +232,7 @@ def add_pattern_bd(x, dataset='cifar10', pattern_type='square', agent_idx=-1):
 
 
 
-def train(net, trainloader, valloader, epochs, device: str = "cpu"):
+def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "cpu"):
     """Train the network on the training set."""
     print("Starting training...")
     net.to(device)  # move model to GPU if available
@@ -256,6 +255,7 @@ def train(net, trainloader, valloader, epochs, device: str = "cpu"):
 
     train_loss, train_acc = test(net, trainloader)
     val_loss, val_acc = test(net, valloader)
+    poison_loss, poison_acc = test(net, poinsonedloader)
     #val_loss, val_acc = test(net, trainloader)
 
     results = {
@@ -263,6 +263,8 @@ def train(net, trainloader, valloader, epochs, device: str = "cpu"):
         "train_accuracy": train_acc,
         "val_loss": val_loss,
         "val_accuracy": val_acc,
+        "poison_loss": poison_loss,
+        "poison_accuracy": poison_acc,
     }
     return results
 
