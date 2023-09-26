@@ -165,9 +165,9 @@ def main():
     # Create strategy
     #strategy = fl.server.strategy.FedAvg(
     strategy = AggregateCustomMetricStrategy(
-        min_fit_clients=3,
-        min_evaluate_clients=3,
-        min_available_clients=3,
+        min_fit_clients=1,
+        min_evaluate_clients=1,
+        min_available_clients=1,
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
@@ -178,7 +178,7 @@ def main():
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="10.100.116.10:8080",
-        config=fl.server.ServerConfig(num_rounds=10),
+        config=fl.server.ServerConfig(num_rounds=2),
         strategy=strategy,
     )
 
