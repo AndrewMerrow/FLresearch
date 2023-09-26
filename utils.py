@@ -102,7 +102,8 @@ def poison_dataset(dataset, data_idxs=None, poison_all=False, agent_idx=-1):
     if data_idxs != None:
         all_idxs = list(set(all_idxs).intersection(data_idxs))
 
-    poison_frac = 1 if poison_all else 0.5
+    #poison_frac = 1 if poison_all else 0.5
+    poison_frac = 0.5
     #print("Poinson fraction: " + str(poison_frac))
     poison_idxs = random.sample(all_idxs, floor(poison_frac*len(all_idxs)))
     #print("Poisoning {} images".format(len(poison_idxs)))
