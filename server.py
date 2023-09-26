@@ -91,8 +91,8 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
         if not results:
             return None, {}
         
-        for client in results:
-            print("Client: " + str(client[1].metrics))
+        #for client in results:
+        #    print("Client: " + str(client[1].metrics))
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
         aggregated_loss, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
@@ -120,8 +120,8 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
         if not results:
             return None, {}
         
-        for client in results:
-            print("Client results: " + str(client[1].metrics))
+        #for client in results:
+        #    print("Client results: " + str(client[1].metrics))
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
         aggregated_loss, aggregated_metrics = super().aggregate_evaluate(server_round, results, failures)
@@ -178,7 +178,7 @@ def main():
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="10.100.116.10:8080",
-        config=fl.server.ServerConfig(num_rounds=2),
+        config=fl.server.ServerConfig(num_rounds=20),
         strategy=strategy,
     )
 
