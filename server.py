@@ -91,8 +91,10 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
         if not results:
             return None, {}
         
-        #for client in results:
-        #    print("Client: " + str(client[1].metrics))
+        for client in results:
+            print("Client: " + str(client[1].metrics))
+            for metric in client[1].metrics:
+                print(metric)
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
         aggregated_loss, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
