@@ -100,10 +100,14 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
         # Weigh accuracy of each client by number of examples used
         accuracies = [r.metrics["train_accuracy"] * r.num_examples for _, r in results]
         examples = [r.num_examples for _, r in results]
+        poisonAccuracies = [r.metrics["poison_accuracy"] * r.num_examples for _, r in results]
 
         # Aggregate and print custom metric
         aggregated_accuracy = sum(accuracies) / sum(examples)
         print(f"Round {server_round} accuracy aggregated from client fit results: {aggregated_accuracy}")
+
+        aggregated_poison_accuracy = sum(poisonAccuracies) / sum(examples)
+        print(f"Round {server_round} poison accuracy aggregated from client fit results: {aggregated_poison_accuracy}")
 
         # Return aggregated loss and metrics (i.e., aggregated accuracy)
         #print("DUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUHHHHHHHHHHHHHH")
@@ -129,10 +133,14 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
         # Weigh accuracy of each client by number of examples used
         accuracies = [r.metrics["accuracy"] * r.num_examples for _, r in results]
         examples = [r.num_examples for _, r in results]
+        poisonAccuracies = [r.metrics["poison_accuracy"] * r.num_examples for _, r in results]
 
         # Aggregate and print custom metric
         aggregated_accuracy = sum(accuracies) / sum(examples)
         print(f"Round {server_round} accuracy aggregated from client eval results: {aggregated_accuracy}")
+
+        aggregated_poison_accuracy = sum(poisonAccuracies) / sum(examples)
+        print(f"Round {server_round} poison accuracy aggregated from client fit results: {aggregated_poison_accuracy}")
 
         # Return aggregated loss and metrics (i.e., aggregated accuracy)
         #print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
@@ -178,7 +186,7 @@ def main():
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="10.100.116.10:8080",
-        config=fl.server.ServerConfig(num_rounds=200),
+        config=fl.server.ServerConfig(num_rounds=2),
         strategy=strategy,
     )
 
