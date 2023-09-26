@@ -157,6 +157,13 @@ def main() -> None:
         required=False,
         help="Set to true to use GPU. Default: False",
     )
+    parser.add_argument(
+        "--poison",
+        type=bool,
+        default=False,
+        required=False,
+        help="Set to true to make the client poison their train data"
+    )
 
     args = parser.parse_args()
 
@@ -173,6 +180,10 @@ def main() -> None:
         if args.toy:
             trainset = torch.utils.data.Subset(trainset, range(10))
             testset = torch.utils.data.Subset(testset, range(10))
+
+        if args.poison:
+            idxs = (trainset.targets == 5).nonzero().flatten().tolist()
+            utils.poison_dataset(trainset, idxs, poison_all=True)
 
         # Start Flower client
         client = CifarClient(trainset, testset, device)
