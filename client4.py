@@ -6,6 +6,8 @@ import flwr as fl
 import argparse
 from collections import OrderedDict
 import warnings
+import copy
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
 
@@ -24,9 +26,11 @@ class CifarClient(fl.client.NumPyClient):
         self.validation_split = validation_split
 
     def set_parameters(self, parameters):
-        """Loads a efficientnet model and replaces it parameters with the ones
+        """Loads a CNN model and replaces it parameters with the ones
         given."""
-        model = utils.load_efficientnet(classes=10)
+        #print("Params: " + str(parameters))
+        #model = utils.load_efficientnet(classes=10)
+        model = utils.Net()
         params_dict = zip(model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         model.load_state_dict(state_dict, strict=False)
@@ -34,7 +38,7 @@ class CifarClient(fl.client.NumPyClient):
 
     def fit(self, parameters, config):
         """Train parameters on the locally held training set."""
-        print("Batch size: " + str(config['batch_size']))
+        print("\nBatch size: " + str(config['batch_size']))
         print("Current round: " + str(config['current_round']))
         print("Local epochs: " + str(config['local_epochs']))
         # Update local model parameters
@@ -51,10 +55,34 @@ class CifarClient(fl.client.NumPyClient):
             self.trainset, range(n_valset, len(self.trainset))
         )
 
+        idxs = (self.testset.targets == 5).nonzero().flatten().tolist()
         trainLoader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
         valLoader = DataLoader(valset, batch_size=batch_size)
+        
+        #create a copy to be poisoned and another copy as a control 
+        poisoned_val_set = utils.DatasetSplit(copy.deepcopy(self.trainset), idxs)
+        clean_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
 
-        results = utils.train(model, trainLoader, valLoader, epochs, self.device)
+        #utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
+        #print(poisoned_val_set.dataset.data.shape)
+
+        poisoned_val_loader = DataLoader(poisoned_val_set, batch_size=256, shuffle=False, pin_memory=False)
+        
+        #test images for visualization to confirm poisoning was successful 
+        test_poison = poisoned_val_set.dataset.data[49988]
+        #test_clean = clean_val_set.dataset.data[3000]
+        test_clean = poisoned_val_set.dataset.data[49988]
+
+        #visualize the poisoned image
+        #fig = plt.figure()
+        #ax1 = fig.add_subplot(2,2,1)
+        #ax1.imshow(test_clean)
+        #ax2 = fig.add_subplot(2,2,2)
+        #ax2.imshow(test_poison)
+        #plt.show()
+
+        #training
+        results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
 
         parameters_prime = utils.get_model_params(model)
         num_examples_train = len(trainset)
@@ -80,14 +108,18 @@ def client_dry_run(device: str = "cpu"):
     """Weak tests to check whether all client methods are working as
     expected."""
 
-    model = utils.load_efficientnet(classes=10)
+    #model = utils.load_efficientnet(classes=10)
+    model = utils.Net()
     trainset, testset = utils.load_partition(0)
-    trainset = torch.utils.data.Subset(trainset, range(10))
-    testset = torch.utils.data.Subset(testset, range(10))
+    idxs = (trainset.targets == 5).nonzero().flatten().tolist()
+    #print(idxs)
+    utils.poison_dataset(trainset, idxs, poison_all=True)
+    #trainset = torch.utils.data.Subset(trainset, range(10))
+    #testset = torch.utils.data.Subset(testset, range(10))
     client = CifarClient(trainset, testset, device)
     client.fit(
         utils.get_model_params(model),
-        {"batch_size": 16, "local_epochs": 1},
+        {"batch_size": 16, "local_epochs": 1, "current_round": 1},
     )
 
     client.evaluate(utils.get_model_params(model), {"val_steps": 32})
@@ -129,6 +161,13 @@ def main() -> None:
         required=False,
         help="Set to true to use GPU. Default: False",
     )
+    parser.add_argument(
+        "--poison",
+        type=bool,
+        default=False,
+        required=False,
+        help="Set to true to make the client poison their train data"
+    )
 
     args = parser.parse_args()
 
@@ -145,6 +184,10 @@ def main() -> None:
         if args.toy:
             trainset = torch.utils.data.Subset(trainset, range(10))
             testset = torch.utils.data.Subset(testset, range(10))
+
+        if args.poison:
+            idxs = (trainset.targets == 5).nonzero().flatten().tolist()
+            utils.poison_dataset(trainset, idxs, poison_all=True)
 
         # Start Flower client
         client = CifarClient(trainset, testset, device)
