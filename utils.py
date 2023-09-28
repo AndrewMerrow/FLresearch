@@ -254,22 +254,28 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
 
     net.to("cpu")  # move model back to CPU
 
-    train_loss, train_acc = test(net, trainloader, None, device)
-    val_loss, val_acc = test(net, valloader, None, device)
-    poison_loss, poison_acc = test(net, poinsonedloader, None, device)
+    print("train eval")
+    train_loss, train_acc, train_per_class = test(net, trainloader, None, device)
+    print("val eval")
+    val_loss, val_acc, val_per_class = test(net, valloader, None, device)
+    print("poison eval")
+    poison_loss, poison_acc, poison_per_class = test(net, poinsonedloader, None, device)
     #val_loss, val_acc = test(net, trainloader)
 
-    print("Length of trainset: " + str(len(trainloader.dataset)))
-    print("Length of validation set: " + str(len(valloader.dataset)))
-    print("Length of poison set: " + str(len(poinsonedloader.dataset)))
+    #print("Length of trainset: " + str(len(trainloader.dataset)))
+    #print("Length of validation set: " + str(len(valloader.dataset)))
+    #print("Length of poison set: " + str(len(poinsonedloader.dataset)))
 
     results = {
         "train_loss": train_loss,
         "train_accuracy": train_acc,
+        "train_accuracy_per_class": train_per_class,
         "val_loss": val_loss,
         "val_accuracy": val_acc,
+        "val_accuracy_per_class": val_per_class,
         "poison_loss": poison_loss,
         "poison_accuracy": poison_acc,
+        "poison_accuracy_per_class": poison_per_class,
     }
     return results
 
@@ -286,6 +292,7 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
 def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, device: str = "cpu"):
     correct, loss = 0, 0.0
     model.eval()
+    confusion_matrix = torch.zeros(10, 10)
     #print("\ttest1")
     with torch.no_grad():
         #print("\ttest2")
@@ -293,18 +300,24 @@ def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, devi
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             #print("Outputs")
-            #print(outputs)
+            #print(outputs.data)
             #print("Labels")
             #print(labels)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
+            predicted = predicted.view(-1)
             correct += (predicted == labels).sum().item()
             if steps is not None and batch_idx == steps:
                 break
+            for t, p in zip(labels.view(-1), predicted.view(-1)):
+                confusion_matrix[t.long(), p.long()] += 1
+    per_class_accuracy = confusion_matrix.diag() / confusion_matrix.sum(1)
     accuracy = correct / len(data_loader.dataset)
-    print("Loss: " + str(loss))
-    print("Accuracy: " + str(accuracy))
-    return loss, accuracy
+    avg_loss = loss / len(data_loader.dataset)
+    print("\tAvg Loss: " + str(avg_loss))
+    print("\tAccuracy: " + str(accuracy))
+    print("\tPer class accuracy: " + str(per_class_accuracy))
+    return avg_loss, accuracy, per_class_accuracy
 
 
 def replace_classifying_layer(efficientnet_model, num_classes: int = 10):

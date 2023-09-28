@@ -38,8 +38,8 @@ class CifarClient(fl.client.NumPyClient):
 
     def fit(self, parameters, config):
         """Train parameters on the locally held training set."""
-        print("\nBatch size: " + str(config['batch_size']))
-        print("Current round: " + str(config['current_round']))
+        print("\nCurrent round: " + str(config['current_round']))
+        print("Batch size: " + str(config['batch_size']))
         print("Local epochs: " + str(config['local_epochs']))
         # Update local model parameters
         model = self.set_parameters(parameters)

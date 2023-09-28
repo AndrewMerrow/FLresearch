@@ -54,7 +54,7 @@ def get_evaluate_fn(model: torch.nn.Module, toy: bool):
         # Use the last 5k training examples as a validation set
         valset = torch.utils.data.Subset(trainset, range(n_train - 5000, n_train))
 
-    valLoader = DataLoader(valset, batch_size=16)
+    valLoader = DataLoader(valset, batch_size=256)
 
     # The `evaluate` function will be called after every round
     def evaluate(
@@ -67,8 +67,8 @@ def get_evaluate_fn(model: torch.nn.Module, toy: bool):
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         model.load_state_dict(state_dict, strict=False)
 
-        loss, accuracy = utils.test(model, valLoader)
-        return loss, {"accuracy": accuracy}
+        loss, accuracy, per_class_accuracy = utils.test(model, valLoader)
+        return loss, {"accuracy": accuracy, "per_class_accuracy": per_class_accuracy}
 
     return evaluate
 
