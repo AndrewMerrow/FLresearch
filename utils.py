@@ -239,7 +239,7 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     net.to(device)  # move model to GPU if available
     criterion = torch.nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.SGD(
-        net.parameters(), lr=0.1, momentum=0.9 #, weight_decay=1e-4
+        net.parameters(), lr=0.01, momentum=0.9 #, weight_decay=1e-4
     )
     net.train()
     for _ in range(epochs):
