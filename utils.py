@@ -239,7 +239,7 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     net.to(device)  # move model to GPU if available
     criterion = torch.nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.SGD(
-        net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4
+        net.parameters(), lr=0.1, momentum=0.9 #, weight_decay=1e-4
     )
     net.train()
     for _ in range(epochs):
@@ -314,7 +314,7 @@ def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, devi
     per_class_accuracy = confusion_matrix.diag() / confusion_matrix.sum(1)
     accuracy = correct / len(data_loader.dataset)
     avg_loss = loss / len(data_loader.dataset)
-    print("\tAvg Loss: " + str(avg_loss))
+    print("\tAvg Loss: {:.3f}".format(avg_loss))
     print("\tAccuracy: " + str(accuracy))
     print("\tPer class accuracy: " + str(per_class_accuracy))
     return avg_loss, accuracy, per_class_accuracy

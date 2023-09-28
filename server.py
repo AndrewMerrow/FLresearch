@@ -81,7 +81,7 @@ def get_evaluate_fn(model: torch.nn.Module, toy: bool):
 #    print("Evaluated accuracy: " + str(sum(accuracies) / sum(examples)))
 #    return {"accuracy": sum(accuracies) / sum(examples)}
 
-class AggregateCustomMetricStrategy(fl.server.strategy.FedAvg):
+class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
     def aggregate_fit(
         self,
         server_round: int,
@@ -181,6 +181,7 @@ def main():
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
+        server_learning_rate = 1.0,
     #    evaluate_metrics_aggregation_fn=weighted_average,
         #initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
     )
