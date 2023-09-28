@@ -269,13 +269,13 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     results = {
         "train_loss": train_loss,
         "train_accuracy": train_acc,
-        "train_accuracy_per_class": train_per_class,
+        #"train_accuracy_per_class": train_per_class,
         "val_loss": val_loss,
         "val_accuracy": val_acc,
-        "val_accuracy_per_class": val_per_class,
+        #"val_accuracy_per_class": val_per_class,
         "poison_loss": poison_loss,
         "poison_accuracy": poison_acc,
-        "poison_accuracy_per_class": poison_per_class,
+        #"poison_accuracy_per_class": poison_per_class,
     }
     return results
 
