@@ -100,7 +100,7 @@ class CifarClient(fl.client.NumPyClient):
         # Evaluate global model parameters on the local test data and return results
         testloader = DataLoader(self.testset, batch_size=256)
 
-        loss, accuracy = utils.test(model, testloader, steps, self.device)
+        loss, accuracy, per_class_accuracy = utils.test(model, testloader, steps, self.device)
         return float(loss), len(self.testset), {"accuracy": float(accuracy)}
 
 
