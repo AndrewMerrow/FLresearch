@@ -74,12 +74,12 @@ class CifarClient(fl.client.NumPyClient):
         test_clean = poisoned_val_set.dataset.data[49988]
 
         #visualize the poisoned image
-        fig = plt.figure()
-        ax1 = fig.add_subplot(2,2,1)
-        ax1.imshow(test_clean)
-        ax2 = fig.add_subplot(2,2,2)
-        ax2.imshow(test_poison)
-        plt.show()
+        #fig = plt.figure()
+        #ax1 = fig.add_subplot(2,2,1)
+        #ax1.imshow(test_clean)
+        #ax2 = fig.add_subplot(2,2,2)
+        #ax2.imshow(test_poison)
+        #plt.show()
 
         #training
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
@@ -112,7 +112,7 @@ def client_dry_run(device: str = "cpu"):
     model = utils.Net()
     trainset, testset = utils.load_partition(0)
     idxs = (trainset.targets == 5).nonzero().flatten().tolist()
-    print(idxs)
+    #print(idxs)
     utils.poison_dataset(trainset, idxs, poison_all=True)
     #trainset = torch.utils.data.Subset(trainset, range(10))
     #testset = torch.utils.data.Subset(testset, range(10))

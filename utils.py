@@ -259,6 +259,10 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     poison_loss, poison_acc = test(net, poinsonedloader, None, device)
     #val_loss, val_acc = test(net, trainloader)
 
+    print("Length of trainset: " + str(len(trainloader.dataset)))
+    print("Length of validation set: " + str(len(valloader.dataset)))
+    print("Length of poison set: " + str(len(poinsonedloader.dataset)))
+
     results = {
         "train_loss": train_loss,
         "train_accuracy": train_acc,
@@ -288,12 +292,18 @@ def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, devi
         for batch_idx, (images, labels) in enumerate(data_loader):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
+            #print("Outputs")
+            #print(outputs)
+            #print("Labels")
+            #print(labels)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
             correct += (predicted == labels).sum().item()
             if steps is not None and batch_idx == steps:
                 break
     accuracy = correct / len(data_loader.dataset)
+    print("Loss: " + str(loss))
+    print("Accuracy: " + str(accuracy))
     return loss, accuracy
 
 
