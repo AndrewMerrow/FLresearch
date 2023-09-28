@@ -285,9 +285,9 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     print("Starting evalutation...")
     net.to(device)  # move model to GPU if available
     criterion = torch.nn.CrossEntropyLoss()
-    loss, accuracy = get_loss_and_accuracy(net, criterion, testloader, steps, device)
+    loss, accuracy, per_class_accuracy = get_loss_and_accuracy(net, criterion, testloader, steps, device)
     net.to("cpu")  # move model back to CPU
-    return loss, accuracy
+    return loss, accuracy, per_class_accuracy
 
 def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, device: str = "cpu"):
     correct, loss = 0, 0.0
