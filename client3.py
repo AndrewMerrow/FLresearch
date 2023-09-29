@@ -50,10 +50,12 @@ class CifarClient(fl.client.NumPyClient):
 
         n_valset = int(len(self.trainset) * self.validation_split)
 
-        valset = torch.utils.data.Subset(self.trainset, range(0, n_valset))
-        trainset = torch.utils.data.Subset(
-            self.trainset, range(n_valset, len(self.trainset))
-        )
+        #valset = torch.utils.data.Subset(self.trainset, range(0, n_valset))
+        valset = self.testset
+        #trainset = torch.utils.data.Subset(
+        #    self.trainset, range(n_valset, len(self.trainset))
+        #)
+        trainset = self.trainset
 
         idxs = (self.testset.targets == 5).nonzero().flatten().tolist()
         trainLoader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
@@ -61,7 +63,7 @@ class CifarClient(fl.client.NumPyClient):
         
         #create a copy to be poisoned and another copy as a control 
         poisoned_val_set = utils.DatasetSplit(copy.deepcopy(self.trainset), idxs)
-        clean_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
+        #clean_val_set = utils.DatasetSplit(copy.deepcopy(self.testset), idxs)
 
         #utils.poison_dataset(poisoned_val_set.dataset, idxs, poison_all=True)
         #print(poisoned_val_set.dataset.data.shape)
@@ -186,6 +188,7 @@ def main() -> None:
             testset = torch.utils.data.Subset(testset, range(10))
 
         if args.poison:
+            print("poisoning the data")
             idxs = (trainset.targets == 5).nonzero().flatten().tolist()
             utils.poison_dataset(trainset, idxs, poison_all=True)
 
