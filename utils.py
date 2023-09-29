@@ -253,6 +253,7 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
             with autocast():
                 loss = criterion(net(images), labels)
             scalar.scale(loss).backward()
+            scalar.unscale_(optimizer)
             #loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 10)
             scalar.step(optimizer)
