@@ -250,8 +250,8 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
             optimizer.zero_grad()
             #print("\nnet(images): " + str(net(images).shape))
             #print("labels: " + str(labels.shape) + "\n")
-            with autocast():
-                loss = criterion(net(images), labels)
+            #with autocast():
+            loss = criterion(net(images), labels)
             scalar.scale(loss).backward()
             #loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 10)
