@@ -2,7 +2,7 @@ import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 from torch.utils.data import Dataset
-from torch.cuda.amp import autocast, GradScalar
+from torch.cuda.amp import autocast
 import torch.nn as nn
 import torch.nn.functional as F
 import cv2
