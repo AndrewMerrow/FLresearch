@@ -2,6 +2,7 @@ import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 from torch.utils.data import Dataset
+from torch.cuda.amp import autocast, GradScalar
 import torch.nn as nn
 import torch.nn.functional as F
 import cv2
@@ -241,6 +242,7 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     optimizer = torch.optim.SGD(
         net.parameters(), lr=0.1, momentum=0.9 #, weight_decay=1e-4
     )
+    scalar = torch.cuda.amp.GradScaler()
     net.train()
     for _ in range(epochs):
         for images, labels in trainloader:
@@ -248,10 +250,13 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
             optimizer.zero_grad()
             #print("\nnet(images): " + str(net(images).shape))
             #print("labels: " + str(labels.shape) + "\n")
-            loss = criterion(net(images), labels)
-            loss.backward()
+            with autocast():
+                loss = criterion(net(images), labels)
+            scalar.scale(loss).backward()
+            #loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 10)
-            optimizer.step()
+            scalar.step(optimizer)
+            #optimizer.step()
 
     net.to("cpu")  # move model back to CPU
 
