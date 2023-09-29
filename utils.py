@@ -314,7 +314,7 @@ def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, devi
             #print(labels)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
-            #predicted = predicted.view(-1)
+            predicted = predicted.view(-1)
             correct += (predicted == labels).sum().item()
             if steps is not None and batch_idx == steps:
                 break
