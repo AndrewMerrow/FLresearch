@@ -256,8 +256,7 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
             #loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 10)
             scalar.step(optimizer)
-            if scalar.state(optimizer) is torch.cuda.amp.OptState.UPDATED:
-                torch.optim.lr_scheduler.step()
+            
             scalar.update()
             #optimizer.step()
 
