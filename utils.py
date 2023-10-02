@@ -259,7 +259,7 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
             #scalar.step(optimizer)
             optimizer.step()
 
-            
+
             #scalar.update()
             
 
@@ -301,30 +301,36 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     return loss, accuracy, per_class_accuracy
 
 def get_loss_and_accuracy(model, criterion, data_loader, steps: int = None, device: str = "cpu"):
-    correct, loss = 0, 0.0
     model.eval()
+    #correct, loss = 0, 0.0
+    total_loss, correctly_labeled_samples = 0, 0
     confusion_matrix = torch.zeros(10, 10)
     #print("\ttest1")
     with torch.no_grad():
         #print("\ttest2")
         for batch_idx, (images, labels) in enumerate(data_loader):
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             outputs = model(images)
-            #print("Outputs")
-            #print(outputs.data)
-            #print("Labels")
-            #print(labels)
-            loss += criterion(outputs, labels).item()
-            _, predicted = torch.max(outputs.data, 1)
-            predicted = predicted.view(-1)
-            correct += (predicted == labels).sum().item()
-            if steps is not None and batch_idx == steps:
-                break
-            for t, p in zip(labels.view(-1), predicted.view(-1)):
+          
+            #loss += criterion(outputs, labels).item()
+            avg_minibatch_loss = criterion(outputs, labels)
+            total_loss += avg_minibatch_loss.item()*outputs.shape[0]
+
+            #_, predicted = torch.max(outputs.data, 1)
+            _, pred_labels = torch.max(outputs, 1)
+            #predicted = predicted.view(-1)
+            pred_labels = pred_labels.view(-1)
+
+            #correct += (predicted == labels).sum().item()
+            correctly_labeled_samples += torch.sum(torch.eq(pred_labels, labels)).item()
+           
+            #if steps is not None and batch_idx == steps:
+            #    break
+            for t, p in zip(labels.view(-1), pred_labels.view(-1)):
                 confusion_matrix[t.long(), p.long()] += 1
     per_class_accuracy = confusion_matrix.diag() / confusion_matrix.sum(1)
-    accuracy = correct / len(data_loader.dataset)
-    avg_loss = loss / len(data_loader.dataset)
+    accuracy = correctly_labeled_samples / len(data_loader.dataset)
+    avg_loss = total_loss / len(data_loader.dataset)
     print("\tAvg Loss: {:.3f}".format(avg_loss))
     print("\tAccuracy: " + str(accuracy))
     print("\tPer class accuracy: " + str(per_class_accuracy))

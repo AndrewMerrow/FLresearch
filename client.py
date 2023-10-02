@@ -113,6 +113,8 @@ def client_dry_run(device: str = "cpu"):
     #model = utils.load_efficientnet(classes=10)
     model = utils.Net()
     trainset, testset = utils.load_partition(0)
+    print("Targets")
+    print(trainset.targets)
     idxs = (trainset.targets == 5).nonzero().flatten().tolist()
     #print(idxs)
     utils.poison_dataset(trainset, idxs, poison_all=True)
