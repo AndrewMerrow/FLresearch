@@ -35,7 +35,7 @@ class CifarClient(fl.client.NumPyClient):
         model = utils.Net()
         params_dict = zip(model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
-        model.load_state_dict(state_dict, strict=True)
+        model.load_state_dict(state_dict, strict=False)
         return model
 
     def fit(self, parameters, config):
@@ -86,11 +86,16 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
-        parameters_old = utils.get_model_params(model)
+        parameters_old = model.parameters()
+        #print("Old paramters")
+        #print(parameters_old)
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
         parameters_prime = utils.get_model_params(model)
+        parameters_new = model.parameters()
+        #print("new parameters")
+        #print(parameters_prime)
 
-        test_params = parameters_to_vector(parameters_prime).double() - parameters_to_vector(parameters_old)
+        test_params = parameters_to_vector(parameters_new).double() - parameters_to_vector(parameters_old)
         print("Update test")
         print(test_params)
 
