@@ -242,16 +242,17 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     optimizer = torch.optim.SGD(
         net.parameters(), lr=0.1, momentum=0.9 #, weight_decay=1e-4
     )
-    scalar = torch.cuda.amp.GradScaler()
+    #scalar = torch.cuda.amp.GradScaler()
     net.train()
     for _ in range(epochs):
-        for images, labels in trainloader:
-            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+        for _, (images, labels) in enumerate(trainloader):
             optimizer.zero_grad()
+            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             #print("\nnet(images): " + str(net(images).shape))
             #print("labels: " + str(labels.shape) + "\n")
             #with autocast():
-            loss = criterion(net(images), labels)
+            outputs = net(images)
+            loss = criterion(outputs, labels)
             #scalar.scale(loss).backward()
             #scalar.unscale_(optimizer)
             loss.backward()
@@ -295,7 +296,7 @@ def test(net, testloader, steps: int = None, device: str = "cpu"):
     """Validate the network on the entire test set."""
     print("Starting evalutation...")
     net.to(device)  # move model to GPU if available
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss().to(device)
     loss, accuracy, per_class_accuracy = get_loss_and_accuracy(net, criterion, testloader, steps, device)
     net.to("cpu")  # move model back to CPU
     return loss, accuracy, per_class_accuracy

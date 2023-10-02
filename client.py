@@ -85,8 +85,8 @@ class CifarClient(fl.client.NumPyClient):
 
         #training
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
-
         parameters_prime = utils.get_model_params(model)
+        
         num_examples_train = len(trainset)
 
         return parameters_prime, num_examples_train, results
