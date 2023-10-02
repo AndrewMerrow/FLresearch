@@ -98,6 +98,8 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
         aggregated_loss, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+        print("Potential loss")
+        print(aggregated_loss)
 
         # Weigh accuracy of each client by number of examples used
         accuracies = [r.metrics["train_accuracy"] * r.num_examples for _, r in results]

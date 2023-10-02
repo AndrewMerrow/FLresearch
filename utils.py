@@ -246,20 +246,22 @@ def train(net, trainloader, valloader, poinsonedloader, epochs, device: str = "c
     net.train()
     for _ in range(epochs):
         for images, labels in trainloader:
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             optimizer.zero_grad()
             #print("\nnet(images): " + str(net(images).shape))
             #print("labels: " + str(labels.shape) + "\n")
-            with autocast():
-                loss = criterion(net(images), labels)
-            scalar.scale(loss).backward()
-            scalar.unscale_(optimizer)
-            #loss.backward()
+            #with autocast():
+            loss = criterion(net(images), labels)
+            #scalar.scale(loss).backward()
+            #scalar.unscale_(optimizer)
+            loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 10)
-            scalar.step(optimizer)
+            #scalar.step(optimizer)
+            optimizer.step()
+
             
-            scalar.update()
-            #optimizer.step()
+            #scalar.update()
+            
 
     net.to("cpu")  # move model back to CPU
 
