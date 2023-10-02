@@ -2,7 +2,7 @@ from typing import Dict, List, Tuple, Optional, Union
 from collections import OrderedDict
 import argparse
 from torch.utils.data import DataLoader
-from flwr.common import Metrics, Scalar, EvaluateRes, FitRes
+from flwr.common import Metrics, Scalar, EvaluateRes, FitRes, parameters_to_ndarrays
 from flwr.server.client_proxy import ClientProxy
 
 import flwr as fl
@@ -97,9 +97,9 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #        print(metric)
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
-        aggregated_loss, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
-        print("Potential loss")
-        print(aggregated_loss)
+        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+        print("Aggregated parameters")
+        print(parameters_to_ndarrays(aggregated_parameters))
 
         # Weigh accuracy of each client by number of examples used
         accuracies = [r.metrics["train_accuracy"] * r.num_examples for _, r in results]
@@ -113,9 +113,8 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #aggregated_poison_accuracy = sum(poisonAccuracies) / sum(examples)
         #print(f"Round {server_round} poison accuracy aggregated from client fit results: {aggregated_poison_accuracy}")
 
-        # Return aggregated loss and metrics (i.e., aggregated accuracy)
-        #print("DUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUHHHHHHHHHHHHHH")
-        return aggregated_loss, {"accuracy": aggregated_accuracy}
+        # Return aggregated model paramters and other metrics (i.e., aggregated accuracy)
+        return aggregated_parameters, {"accuracy": aggregated_accuracy}
     
     def aggregate_evaluate(
         self,
