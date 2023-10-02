@@ -3,6 +3,8 @@ from torch.utils.data import DataLoader
 import torchvision.datasets
 import torch
 import flwr as fl
+from flwr.common import parameters_to_ndarrays
+from torch.nn.utils import parameters_to_vector
 import argparse
 from collections import OrderedDict
 import warnings
@@ -33,7 +35,7 @@ class CifarClient(fl.client.NumPyClient):
         model = utils.Net()
         params_dict = zip(model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
-        model.load_state_dict(state_dict, strict=False)
+        model.load_state_dict(state_dict, strict=True)
         return model
 
     def fit(self, parameters, config):
@@ -84,9 +86,14 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
+        parameters_old = utils.get_model_params(model)
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
         parameters_prime = utils.get_model_params(model)
-        
+
+        test_params = parameters_to_vector(parameters_prime).double() - parameters_to_vector(parameters_old)
+        print("Update test")
+        print(test_params)
+
         num_examples_train = len(trainset)
 
         return parameters_prime, num_examples_train, results
