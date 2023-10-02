@@ -68,6 +68,8 @@ def get_evaluate_fn(model: torch.nn.Module, toy: bool):
         model.load_state_dict(state_dict, strict=False)
 
         loss, accuracy, per_class_accuracy = utils.test(model, valLoader)
+        if(loss == "nan"):
+            print("LOSS IS NAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN")
         return loss, {"accuracy": accuracy, "per_class_accuracy": per_class_accuracy}
 
     return evaluate
@@ -98,8 +100,8 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
-        print("Aggregated parameters")
-        print(parameters_to_ndarrays(aggregated_parameters))
+        #print("Aggregated parameters")
+        #print(parameters_to_ndarrays(aggregated_parameters))
 
         # Weigh accuracy of each client by number of examples used
         accuracies = [r.metrics["train_accuracy"] * r.num_examples for _, r in results]
@@ -176,9 +178,9 @@ def main():
     # Create strategy
     #strategy = fl.server.strategy.FedAvg(
     strategy = AggregateCustomMetricStrategy(
-        min_fit_clients=1,
-        min_evaluate_clients=1,
-        min_available_clients=1,
+        min_fit_clients=2,
+        min_evaluate_clients=2,
+        min_available_clients=2,
         evaluate_fn=get_evaluate_fn(model, args.toy),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
