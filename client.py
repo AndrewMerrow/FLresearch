@@ -97,7 +97,8 @@ class CifarClient(fl.client.NumPyClient):
 
         test_params = parameters_to_vector(parameters_new).double() - parameters_to_vector(parameters_old)
         print("Update test")
-        print(test_params)
+        print(torch.count_nonzero(test_params))
+        
 
         num_examples_train = len(trainset)
 
