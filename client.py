@@ -86,7 +86,8 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
-        parameters_old = model.parameters()
+        #parameters_old = model.parameters()
+        parameters_old = parameters_to_vector(model.parameters()).detach()
         #print("Old paramters")
         #print(parameters_old)
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
@@ -95,7 +96,8 @@ class CifarClient(fl.client.NumPyClient):
         #print("new parameters")
         #print(parameters_prime)
 
-        test_params = parameters_to_vector(parameters_new).double() - parameters_to_vector(parameters_old)
+        #test_params = parameters_to_vector(parameters_new).double() - parameters_to_vector(parameters_old)
+        test_params = parameters_to_vector(parameters_new).double() - parameters_old
         print("Update test")
         print(torch.count_nonzero(test_params))
         
