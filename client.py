@@ -4,7 +4,7 @@ import torchvision.datasets
 import torch
 import flwr as fl
 from flwr.common import parameters_to_ndarrays
-from torch.nn.utils import parameters_to_vector
+from torch.nn.utils import parameters_to_vector, vector_to_parameters
 import argparse
 from collections import OrderedDict
 import warnings
@@ -104,7 +104,7 @@ class CifarClient(fl.client.NumPyClient):
 
         num_examples_train = len(trainset)
 
-        return test_params, num_examples_train, results
+        return vector_to_parameters(test_params), num_examples_train, results
 
     def evaluate(self, parameters, config):
         """Evaluate parameters on the locally held test set."""
