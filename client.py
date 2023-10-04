@@ -104,7 +104,7 @@ class CifarClient(fl.client.NumPyClient):
 
         num_examples_train = len(trainset)
 
-        return parameters_prime, num_examples_train, results
+        return test_params, num_examples_train, results
 
     def evaluate(self, parameters, config):
         """Evaluate parameters on the locally held test set."""
