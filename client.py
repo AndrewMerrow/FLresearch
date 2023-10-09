@@ -86,9 +86,9 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
-        #parameters_old = utils.get_model_params(model)
+        parameters_old = utils.get_model_params(model)
         #parameters_old = parameters_to_ndarrays(utils.get_model_params(model))
-        parameters_old = parameters_to_vector(model.parameters()).detach()
+        #parameters_old = parameters_to_vector(model.parameters()).detach()
         #print("Old paramters")
         #print(parameters_old)
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
@@ -101,17 +101,20 @@ class CifarClient(fl.client.NumPyClient):
         #print(parameters_prime)
 
         #test_params = parameters_prime - parameters_old
-        test_params = parameters_to_vector(parameters_new).double() - parameters_old
-        print("Update test")
-        print(torch.count_nonzero(test_params))
+        #test_params = parameters_to_vector(parameters_new).double() - parameters_old
+        test_params = []
+        for param1, param2 in zip(parameters_prime, parameters_old):
+            test_params.append(param1 - param2)
+        #print("Update test")
+        #print(torch.count_nonzero(test_params))
         
         print("type 1: ")
         print(type(test_params))
         num_examples_train = len(trainset)
-        vector_to_parameters(test_params, test_params)
+        #vector_to_parameters(test_params, test_params)
         print("type 2: ")
         print(type(test_params))
-        test_params = parameters_to_ndarrays(test_params)
+        #test_params = parameters_to_ndarrays(test_params)
 
 
         return test_params, num_examples_train, results
