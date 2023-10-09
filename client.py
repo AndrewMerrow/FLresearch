@@ -104,7 +104,7 @@ class CifarClient(fl.client.NumPyClient):
         
 
         num_examples_train = len(trainset)
-        vector_to_parameters(test_params, test_params)
+        #vector_to_parameters(test_params, test_params)
 
 
         return test_params, num_examples_train, results
