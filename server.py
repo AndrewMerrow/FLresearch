@@ -102,7 +102,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #        print(metric)
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
-        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+        #aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
         #print("Aggregated parameters")
         #print(parameters_to_ndarrays(aggregated_parameters))
 
@@ -215,7 +215,7 @@ def main():
         server_learning_rate = 1.0,
         server_momentum = 0,
     #    evaluate_metrics_aggregation_fn=weighted_average,
-        #initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
+        initial_parameters=fl.common.ndarrays_to_parameters(model_parameters),
     )
 
     # Start Flower server for four rounds of federated learning
