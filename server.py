@@ -1,9 +1,12 @@
 from typing import Dict, List, Tuple, Optional, Union
+from functools import reduce
 from collections import OrderedDict
 import argparse
 from torch.utils.data import DataLoader
-from flwr.common import Metrics, Scalar, EvaluateRes, FitRes, parameters_to_ndarrays
+from flwr.common import Metrics, Scalar, EvaluateRes, FitRes, parameters_to_ndarrays, ndarrays_to_parameters, NDArray, NDArrays
 from flwr.server.client_proxy import ClientProxy
+
+import numpy as np
 
 import flwr as fl
 import torch
@@ -103,6 +106,31 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #print("Aggregated parameters")
         #print(parameters_to_ndarrays(aggregated_parameters))
 
+        #new custom aggregation (delta value implementation)
+        _, clientExample = results[0]
+        n_params = len(parameters_to_ndarrays(clientExample.parameters))
+        lr_vector = torch.Tensor([self.server_learning_rate]*n_params)
+        # Convert results (creates tuples of the client updates and their number of training examples for weighting purposes)
+        weights_results = [
+            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples)
+            for _, fit_res in results
+        ]
+        #interpretation of the aggregate.py code
+        num_examples_total = sum([num_examples for _, num_examples in weights_results])
+        weighted_weights = [
+        [layer * num_examples for layer in weights] for weights, num_examples in weights_results
+        ]
+        #compute average weights of each layer
+        weights_prime: NDArrays = [
+        reduce(np.add, layer_updates) / num_examples_total
+        for layer_updates in zip(*weighted_weights)
+        ]
+
+        cur_global_params = parameters_to_ndarrays(self.initial_parameters)
+        new_global_params = (cur_global_params + lr_vector*weights_prime).float()
+        new_global_params = ndarrays_to_parameters(new_global_params)
+
+        #metric stuff
         # Weigh accuracy of each client by number of examples used
         accuracies = [r.metrics["train_accuracy"] * r.num_examples for _, r in results]
         examples = [r.num_examples for _, r in results]
@@ -116,7 +144,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #print(f"Round {server_round} poison accuracy aggregated from client fit results: {aggregated_poison_accuracy}")
 
         # Return aggregated model paramters and other metrics (i.e., aggregated accuracy)
-        return aggregated_parameters, {"accuracy": aggregated_accuracy}
+        return new_global_params, {"accuracy": aggregated_accuracy}
     
     def aggregate_evaluate(
         self,

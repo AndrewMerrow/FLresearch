@@ -3,6 +3,8 @@ from torch.utils.data import DataLoader
 import torchvision.datasets
 import torch
 import flwr as fl
+from flwr.common import parameters_to_ndarrays
+from torch.nn.utils import parameters_to_vector, vector_to_parameters
 import argparse
 from collections import OrderedDict
 import warnings
@@ -84,12 +86,25 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
+        #parameters_old = model.parameters()
+        parameters_old = parameters_to_vector(model.parameters()).detach()
+        #print("Old paramters")
+        #print(parameters_old)
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
-
         parameters_prime = utils.get_model_params(model)
+        parameters_new = model.parameters()
+        #print("new parameters")
+        #print(parameters_prime)
+
+        #test_params = parameters_to_vector(parameters_new).double() - parameters_to_vector(parameters_old)
+        test_params = parameters_to_vector(parameters_new).double() - parameters_old
+        print("Update test")
+        print(torch.count_nonzero(test_params))
+        
+
         num_examples_train = len(trainset)
 
-        return parameters_prime, num_examples_train, results
+        return vector_to_parameters(test_params), num_examples_train, results
 
     def evaluate(self, parameters, config):
         """Evaluate parameters on the locally held test set."""
@@ -113,6 +128,8 @@ def client_dry_run(device: str = "cpu"):
     #model = utils.load_efficientnet(classes=10)
     model = utils.Net()
     trainset, testset = utils.load_partition(0)
+    print("Targets")
+    print(trainset.targets)
     idxs = (trainset.targets == 5).nonzero().flatten().tolist()
     #print(idxs)
     utils.poison_dataset(trainset, idxs, poison_all=True)
