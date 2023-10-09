@@ -185,7 +185,7 @@ def main() -> None:
     parser.add_argument(
         "--use_cuda",
         type=bool,
-        default=False,
+        default=True,
         required=False,
         help="Set to true to use GPU. Default: False",
     )
