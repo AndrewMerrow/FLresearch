@@ -95,7 +95,8 @@ class CifarClient(fl.client.NumPyClient):
         parameters_prime = utils.get_model_params(model)
         print("Prime type:")
         print(type(parameters_prime))
-        parameters_new = model.parameters()
+        print(parameters_prime)
+        #parameters_new = model.parameters()
         #print("new parameters")
         #print(parameters_prime)
 
