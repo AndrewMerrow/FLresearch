@@ -126,8 +126,10 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         for layer_updates in zip(*weighted_weights)
         ]
 
-        cur_global_params = parameters_to_ndarrays(self.parameters)
-        #test1 = lr_vector*weights_prime
+        cur_global_params = parameters_to_ndarrays(self.initial_parameters)
+        print(lr_vector.shape)
+        
+        test1 = lr_vector*weights_prime
         #test2 = cur_global_params + test1
         new_global_params = (cur_global_params + weights_prime)
         new_global_params = ndarrays_to_parameters(new_global_params)
