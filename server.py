@@ -130,12 +130,17 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         cur_global_params = parameters_to_ndarrays(self.initial_parameters)
         #print(lr_vector.shape)
         #print(lr_vector)
-        print(weights_prime)
+        #print(weights_prime)
         #test1 = lr_vector*weights_prime
         #test2 = cur_global_params + test1
         new_global_params = (cur_global_params + weights_prime)
         new_global_params = ndarrays_to_parameters(new_global_params)
         self.initial_parameters = new_global_params
+
+        if(cur_global_params == new_global_params):
+            print("The params are the SAME")
+        else:
+            print("They are DIFFERENT")
 
         #metric stuff
         # Weigh accuracy of each client by number of examples used
