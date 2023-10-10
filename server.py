@@ -128,6 +128,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
 
         cur_global_params = parameters_to_ndarrays(self.initial_parameters)
         print(lr_vector.shape)
+        print(lr_vector)
         
         test1 = lr_vector*weights_prime
         #test2 = cur_global_params + test1
