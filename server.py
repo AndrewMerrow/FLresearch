@@ -131,6 +131,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #test2 = cur_global_params + test1
         new_global_params = (cur_global_params + weights_prime)
         new_global_params = ndarrays_to_parameters(new_global_params)
+        self.initial_parameters = new_global_params
 
         #metric stuff
         # Weigh accuracy of each client by number of examples used
