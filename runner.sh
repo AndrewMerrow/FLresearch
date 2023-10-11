@@ -11,7 +11,7 @@ python -c "import torch; torch.hub.load( \
         'nvidia_efficientnet_b0', pretrained=True)"
 
 
-for i in `seq 0 1`; do
+for i in `seq 0 9`; do
     echo "Starting client $i"
     python client.py &
 done
