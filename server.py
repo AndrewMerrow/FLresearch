@@ -139,7 +139,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         self.initial_parameters = new_global_params
         params_new = self.initial_parameters
 
-        if(params_old == params_new):
+        if(params_old == params_old):
             print("The params have NOT changed")
         else:
             print("The params CHANGED")
