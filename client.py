@@ -107,13 +107,13 @@ class CifarClient(fl.client.NumPyClient):
             test_params.append(param1 - param2)
         #print("Update test")
         #print(torch.count_nonzero(test_params))
-        print(test_params)
-        print("type 1: ")
-        print(type(test_params))
+        #print(test_params)
+        #print("type 1: ")
+        #print(type(test_params))
         num_examples_train = len(trainset)
         #vector_to_parameters(test_params, test_params)
-        print("type 2: ")
-        print(type(test_params))
+        #print("type 2: ")
+        #print(type(test_params))
         #test_params = parameters_to_ndarrays(test_params)
 
 

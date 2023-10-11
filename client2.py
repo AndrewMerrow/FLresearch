@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torchvision.datasets
 import torch
 import flwr as fl
-from flwr.common import parameters_to_ndarrays
+from flwr.common import parameters_to_ndarrays, ndarrays_to_parameters
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
 import argparse
 from collections import OrderedDict
@@ -86,24 +86,35 @@ class CifarClient(fl.client.NumPyClient):
         #plt.show()
 
         #training
-        #parameters_old = model.parameters()
-        parameters_old = parameters_to_vector(model.parameters()).detach()
+        parameters_old = utils.get_model_params(model)
+        #parameters_old = parameters_to_ndarrays(utils.get_model_params(model))
+        #parameters_old = parameters_to_vector(model.parameters()).detach()
         #print("Old paramters")
         #print(parameters_old)
         results = utils.train(model, trainLoader, valLoader, poisoned_val_loader, epochs, self.device)
         parameters_prime = utils.get_model_params(model)
-        parameters_new = model.parameters()
+        #print("Prime type:")
+        #print(type(parameters_prime))
+        #print(parameters_prime)
+        #parameters_new = model.parameters()
         #print("new parameters")
         #print(parameters_prime)
 
-        #test_params = parameters_to_vector(parameters_new).double() - parameters_to_vector(parameters_old)
-        test_params = parameters_to_vector(parameters_new).double() - parameters_old
-        print("Update test")
-        print(torch.count_nonzero(test_params))
-        
-
+        #test_params = parameters_prime - parameters_old
+        #test_params = parameters_to_vector(parameters_new).double() - parameters_old
+        test_params = []
+        for param1, param2 in zip(parameters_prime, parameters_old):
+            test_params.append(param1 - param2)
+        #print("Update test")
+        #print(torch.count_nonzero(test_params))
+        #print(test_params)
+        #print("type 1: ")
+        #print(type(test_params))
         num_examples_train = len(trainset)
-        vector_to_parameters(test_params, test_params)
+        #vector_to_parameters(test_params, test_params)
+        #print("type 2: ")
+        #print(type(test_params))
+        #test_params = parameters_to_ndarrays(test_params)
 
 
         return test_params, num_examples_train, results
@@ -178,7 +189,7 @@ def main() -> None:
     parser.add_argument(
         "--use_cuda",
         type=bool,
-        default=False,
+        default=True,
         required=False,
         help="Set to true to use GPU. Default: False",
     )
