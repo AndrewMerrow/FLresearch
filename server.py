@@ -39,7 +39,7 @@ def evaluate_config(server_round: int):
     batches) during rounds one to three, then increase to ten local
     evaluation steps.
     """
-    val_steps = 5 #if server_round < 4 else 10
+    val_steps = 1 #if server_round < 4 else 10
     return {"val_steps": val_steps}
 
 
