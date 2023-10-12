@@ -102,7 +102,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #        print(metric)
 
         # Call aggregate_evaluate from base class (FedAvg) to aggregate loss and metrics
-        #aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
         #print("Aggregated parameters")
         #print(parameters_to_ndarrays(aggregated_parameters))
 
@@ -158,7 +158,7 @@ class AggregateCustomMetricStrategy(fl.server.strategy.FedAvgM):
         #print(f"Round {server_round} poison accuracy aggregated from client fit results: {aggregated_poison_accuracy}")
 
         # Return aggregated model paramters and other metrics (i.e., aggregated accuracy)
-        return new_global_params, {"accuracy": aggregated_accuracy}
+        return aggregated_parameters, {"accuracy": aggregated_accuracy}
     
     def aggregate_evaluate(
         self,
